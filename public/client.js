@@ -390,10 +390,15 @@
   nextRoundBtn.onclick = () => {
     if (!state.isHost || !state.roomCode) return;
     if (state.finalPending) {
-      leaderboardOverlay.classList.add('hidden');
-      leaderboardOverlay.classList.remove('show');
-      showFinalPodium(); // no podium data needed here; final overlay just closes leaderboard
-      state.finalPending = false;
+      socket.emit('host:showFinal', { roomCode: state.roomCode }, (res) => {
+        if (res?.error) return alert(res.error);
+        leaderboardOverlay.classList.add('hidden');
+        leaderboardOverlay.classList.remove('show');
+        // Fallback: ensure host sees the podium immediately; server broadcast will still reach all clients.
+        if (!finalOverlay.classList.contains('show') && state.finalPodium.length) {
+          showFinalPodium(state.finalPodium);
+        }
+      });
     } else {
       socket.emit('host:nextRound', { roomCode: state.roomCode }, (res) => {
         if (res?.error) return alert(res.error);
@@ -524,6 +529,16 @@
     }
     guessesList.innerHTML = '';
     ensureGuessesPlaceholder();
+    renderPhase();
+  });
+
+  socket.on('game:final', (payload) => {
+    state.phase = payload.phase || 'finished';
+    state.finalPodium = payload.podium || [];
+    state.finalPending = false;
+    leaderboardOverlay.classList.add('hidden');
+    leaderboardOverlay.classList.remove('show');
+    showFinalPodium(state.finalPodium);
     renderPhase();
   });
 

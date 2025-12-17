@@ -402,6 +402,31 @@ io.on('connection', (socket) => {
     cb?.({ ok: true });
   });
 
+  // Host triggers final standings for everyone after the last round.
+  socket.on('host:showFinal', ({ roomCode }, cb) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostId !== socket.id) return cb?.({ error: 'Only host can continue' });
+    // Allow final display as long as the configured rounds are complete.
+    if (room.currentRound < room.settings.totalRounds) return cb?.({ error: 'Game not finished yet' });
+    const podium = buildPodium(room);
+    io.to(room.code).emit('game:final', {
+      podium,
+      scores: buildScoreboard(room),
+      packetName: room.packetName || 'Not chosen',
+      phase: 'waiting',
+    });
+    // Reset to a clean waiting state for a new game.
+    room.phase = 'waiting';
+    room.gameActive = false;
+    room.currentRound = 0;
+    room.lastSolution = null;
+    room.usedWordIndices = new Set();
+    clearRound(room);
+    emitRoomState(room);
+    broadcastRoomList();
+    cb?.({ ok: true });
+  });
+
   socket.on('round:guess', ({ roomCode, guess }) => {
     const room = rooms.get(roomCode);
     if (!room || room.phase !== 'running' || !room.round || !guess) return;
