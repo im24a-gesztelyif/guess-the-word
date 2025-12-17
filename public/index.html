@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guess the Word</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero" id="hero">
+        <div>
+          <p class="eyebrow">Realtime Multiplayer</p>
+          <h1>Guess the Word</h1>
+          <p class="lede">
+            Join a room, watch the hints unfold, and race to guess the secret word before the timer ends.
+          </p>
+        </div>
+        <div class="pill">WebSockets powered</div>
+      </header>
+
+      <nav class="topbar hidden" id="inGameNav">
+        <div class="left">
+          <button id="roomInfoBtn" class="ghost small">Room info</button>
+        </div>
+        <div class="right">
+          <button id="leaveBtn" class="danger small">Leave game</button>
+        </div>
+      </nav>
+
+      <main class="panels">
+        <section id="lobby" class="card">
+          <h2>Lobby</h2>
+          <div class="lobby-grid">
+            <div class="card soft">
+              <h3>Your name</h3>
+              <label class="field">
+                <span>Nickname</span>
+                <input id="nickname" type="text" placeholder="Your name" />
+              </label>
+              <div class="actions">
+                <label class="checkbox">
+                  <input type="checkbox" id="privateToggle" />
+                  <span>Private room (hidden from list)</span>
+                </label>
+                <button id="createRoomBtn" class="primary block">Create Room</button>
+              </div>
+            </div>
+            <div class="card soft">
+              <h3>Join a room</h3>
+              <p class="muted">Pick from the list or enter a code.</p>
+              <button id="openJoinBtn" class="ghost block">Join Room</button>
+              <div class="join-panel hidden" id="joinPanel">
+                <div class="flex gap">
+                  <input id="roomCodeInput" type="text" maxlength="4" placeholder="CODE" class="code" />
+                  <button id="joinRoomBtn" class="ghost">Join with code</button>
+                </div>
+                <div class="room-list">
+                  <div class="room-list-header">
+                    <span>Open Rooms</span>
+                    <button id="refreshRooms" class="ghost small">Refresh</button>
+                  </div>
+                  <div id="rooms"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="game" class="card hidden">
+          <div class="game-grid">
+            <aside class="scoreboard column" id="scoreColumn">
+              <div class="section-title">Scoreboard</div>
+              <ul id="scoreList"></ul>
+            </aside>
+
+            <section class="play-area" id="playArea">
+              <div class="center-stack" id="centerStack">
+                <div class="timer" id="timer">60</div>
+                <div id="roundLabel" class="round-indicator">Round 0</div>
+                <div id="waitingMessage" class="muted">Waiting for host to start the game.</div>
+                <div id="guessControls" class="guess-box">
+                  <h3>Your guess</h3>
+                  <div id="segmentedInput" class="segments" data-length="0"></div>
+                  <button id="submitGuessBtn" class="primary block">Submit Guess (Enter)</button>
+                  <p class="note">
+                    Points: 4 pts with 1 hint, 3 pts with 2 hints, 2 pts with 3 hints, 1 pt with all hints.
+                  </p>
+                </div>
+              </div>
+              <div class="hints">
+                <h3>Hints</h3>
+                <ol id="hintsList"></ol>
+              </div>
+
+              <div id="hostPanel" class="panel hidden">
+                <div class="panel-header">
+                  <h3>Host Setup</h3>
+                  <label class="checkbox">
+                    <input type="checkbox" id="hostPrivateToggle" />
+                    <span>Private</span>
+                  </label>
+                </div>
+                <div class="field">
+                  <span>Packet</span>
+                  <select id="packetSelect"></select>
+                </div>
+                <div class="field grid two">
+                  <label>
+                    <span>Round duration (s)</span>
+                    <input id="settingDuration" type="number" min="15" value="60" />
+                  </label>
+                  <label>
+                    <span>Total rounds</span>
+                    <input id="settingRounds" type="number" min="1" value="5" />
+                  </label>
+                </div>
+                <button id="startRoundBtn" class="primary block">Start game</button>
+                <p class="note">Words and hints are randomly drawn from the selected packet.</p>
+              </div>
+            </section>
+
+            <aside class="guesses column" id="guessColumn">
+              <div class="section-title">Live Guesses</div>
+              <ul id="guessesList"></ul>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="roomInfoModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Room info</h3>
+        <p>Code: <span id="infoRoomCode"></span></p>
+        <p>Host: <span id="infoHost"></span></p>
+        <p>Round duration: <span id="infoDuration"></span>s</p>
+        <p>Private: <span id="infoPrivate"></span></p>
+        <p>Packet: <span id="infoPacket"></span></p>
+        <button id="closeInfoBtn" class="ghost block">Close</button>
+      </div>
+    </div>
+
+    <div id="leaderboardOverlay" class="overlay hidden">
+      <div class="overlay-card leaderboard-card">
+        <h3>Round results</h3>
+        <div id="roundSolution" class="solution-line"></div>
+        <div id="leaderboardList" class="leaderboard-grid"></div>
+        <div class="leaderboard-actions">
+          <button id="nextRoundBtn" class="primary block hidden">Next round</button>
+          <p id="waitingNext" class="muted small-text hidden">Waiting for host to start the next round…</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="finalOverlay" class="overlay hidden">
+      <div class="overlay-card podium-card">
+        <h3>Final standings</h3>
+        <div class="podium">
+          <div class="podium-spot second" id="podiumSecond"></div>
+          <div class="podium-spot first" id="podiumFirst"></div>
+          <div class="podium-spot third" id="podiumThird"></div>
+        </div>
+        <button id="closeFinalBtn" class="ghost block">Close</button>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+  </body>
+</html>
