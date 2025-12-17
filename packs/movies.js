@@ -1,7 +1,7 @@
 const { entry: e } = require('./util');
 
-// Packet: Movies (base entries, padded to 50 via packs/index.js)
-module.exports = [
+// Packet: Movies (base entries)
+const baseMovies = [
   e('inception', 'Dream layers', 'Christopher Nolan', 'Spinning top', 'Leonardo DiCaprio'),
   e('avatar', 'Blue aliens', 'Pandora', 'James Cameron', 'Na-vi'),
   e('gladiator', 'Ancient Rome', 'Arena battles', 'Ridley Scott', 'Are you not entertained?'),
@@ -15,17 +15,18 @@ module.exports = [
   e('casablanca', 'Morocco', 'Piano bar', 'Bogart', "Here is looking at you"),
   e('psycho', 'Shower scene', 'Motel', 'Norman Bates', 'Hitchcock'),
   e('godfather', 'Mafia family', 'Don Corleone', 'Offer you cannot refuse', 'Sicily'),
+  e('avatar2', 'Water tribes', 'Pandora oceans', 'Sequel', 'Way of Water'),
   e('dune', 'Desert planet', 'Spice', 'House Atreides', 'Sandworms'),
   e('up', 'Floating house', 'Balloons', 'Old man Carl', 'Pixar adventure'),
   e('ratatouille', 'Paris kitchen', 'Little chef', 'Remy', 'Cooking rat'),
   e('moana', 'Ocean voyage', 'Heart of Te Fiti', 'Wayfinder', 'Disney'),
   e('encanto', 'Magical family', 'Casita', 'Colombia', 'Bruno'),
-  e('spiritedaway', 'Bathhouse', 'No-Face', 'Hayao Miyazaki', 'Chihiro'),
+  e('spirited away', 'Bathhouse', 'No-Face', 'Hayao Miyazaki', 'Chihiro'),
   e('interstellar', 'Space travel', 'Black hole', 'Tesseract', 'Cooper'),
   e('arrival', 'Aliens', 'Linguist', 'Heptapods', 'Time perception'),
   e('parasite', 'South Korea', 'Class divide', 'Basement secret', 'Oscar winner'),
   e('joker', 'Gotham', 'Comedian', 'Arthur Fleck', 'Clown makeup'),
-  e('blackpanther', 'Wakanda', 'Vibranium', 'TChalla', 'Marvel hero'),
+  e('black panther', 'Wakanda', 'Vibranium', 'TChalla', 'Marvel hero'),
   e('avengers', 'Team up', 'New York battle', 'Iron Man and Cap', 'Loki'),
   e('endgame', 'Time heist', 'Infinity stones', 'Snap reversal', 'Final battle'),
   e('toy story', 'Talking toys', 'Woody', 'Buzz Lightyear', 'Pixar debut'),
@@ -37,17 +38,82 @@ module.exports = [
   e('la la land', 'Musical', 'Los Angeles', 'Dreamers', 'Emma Stone'),
   e('mad max', 'Post apocalyptic', 'Wasteland', 'Furiosa', 'War Rig'),
   e('blade runner', 'Replicants', 'Deckard', 'Neon city', 'Philip K. Dick'),
-  e('skyfall', 'James Bond', 'MI6', 'Adele theme', 'Silva'),
-  e('knivesout', 'Whodunit', 'Thrombey mansion', 'Detective Blanc', 'Family secrets'),
-  e('mission impossible', 'Ethan Hunt', 'Masks', 'Heists', 'IMF'),
-  e('soul', 'Jazz', 'Afterlife', 'Pixar', 'Body swap'),
-  e('insideout', 'Emotions', 'Headquarters', 'Joy and Sadness', 'Pixar'),
-  e('furyroad', 'Convoy chase', 'Citadel', 'War boys', 'Immortan Joe'),
-  e('terminator', 'Cyborg', 'Sarah Connor', "Ill be back", 'Time travel'),
-  e('whiplash', 'Drums', 'Jazz band', 'Strict teacher', 'Not my tempo'),
-  e('cinderella', 'Glass slipper', 'Midnight', 'Fairy godmother', 'Prince'),
-  e('mulan', 'China', 'Warrior disguise', 'Cricket', 'Honor'),
-  e('moonstruck', 'Romantic comedy', 'Cher', 'Opera', 'Brooklyn'),
-  e('amelie', 'Paris', 'Cafe waitress', 'Quirky deeds', 'Gnome travels'),
-  e('goodfellas', 'Mob life', 'Henry Hill', 'Lufthansa heist', 'Funny how?'),
+  e('mission impossible', 'Ethan Hunt', 'Spies', 'Impossible Missions Force', 'Stunts'),
+  e('inside out', 'Emotions', 'Riley', 'Pixar', 'Joy and Sadness'),
+  e('toy story 2', 'Roundup gang', 'Al', 'Woody and Buzz', 'Sequel'),
+  e('toy story 3', 'Daycare', 'Lotso', 'Farewell scene', 'Incinerator'),
+  e('toy story 4', 'Forky', 'Road trip', 'Bo Peep', 'Goodbye'),
+  e('mission impossible fallout', 'Henry Cavill', 'Helicopter chase', 'Nuclear threat', 'CIA double'),
+  e('mission impossible rogue nation', 'Syndicate', 'Opera house', 'Underwater vault', 'Bikes'),
+  e('mission impossible ghost protocol', 'Burj climb', 'Kremlin', 'Sandstorm', 'Disavowed'),
+  e('mission impossible 2', 'Chimera virus', 'Motorcycle chase', 'John Woo', 'Doves'),
+  e('mission impossible 3', 'Rabbit’s Foot', 'Bridge attack', 'Philip Seymour Hoffman', 'Explosive charge'),
+  e('toy story halloween', 'Spooky toys', 'Short film', 'Buzz and Woody', 'Fun size'),
+  e('cars', 'Lightning McQueen', 'Route 66', 'Radiator Springs', 'Pixar'),
+  e('cars 2', 'Spy adventure', 'Mater', 'World Grand Prix', 'Lemons'),
+  e('cars 3', 'Rookie Cruz', 'Training', 'Racing', 'Rust-eze'),
+  e('finding dory', 'Memory loss', 'Blue tang', 'Family search', 'Pixar'),
+  e('monsters inc', 'Scare factory', 'Sulley and Mike', 'Doors', 'Laugh power'),
+  e('monsters university', 'College prequel', 'OK fraternity', 'Randy', 'Scare Games'),
+  e('wall-e', 'Trash compactor robot', 'Spaceship Axiom', 'EVE', 'Directive'),
+  e('soul', 'Jazz musician', 'Great Before', 'Lost souls', 'Pixar'),
+  e('luca', 'Sea monster', 'Italian Riviera', 'Vespa dream', 'Friendship'),
+  e('turning red', 'Red panda', 'Teen emotions', 'Toronto', 'Mother-daughter'),
+  e('brave', 'Merida', 'Archery', 'Scotland', 'Bear curse'),
+  e('lightyear', 'Buzz origin', 'Space Ranger', 'Zurg', 'Pixar spinoff'),
+  e('fellowship of the ring', 'Middle-earth', 'Frodo', 'One Ring', 'Moria'),
+  e('two towers', 'Helms Deep', 'Gollum', 'Rohan', 'Ents'),
+  e('return of the king', 'Gondor', 'Ring destroyed', 'Minas Tirith', 'Epic finale'),
+  e('hobbit an unexpected journey', 'Bilbo', 'Thirteen dwarves', 'Smaug', 'Adventure begins'),
+  e('hobbit desolation of smaug', 'Dragon', 'Mirkwood', 'Barrels', 'Laketown'),
+  e('hobbit battle of five armies', 'War', 'Thorin', 'Erebor', 'Farewell'),
+  e('harry potter philosopher stone', 'Hogwarts', 'The Boy Who Lived', 'Sorcerer’s Stone', 'Wizarding world'),
+  e('harry potter chamber secrets', 'Basilisk', 'Diary', 'Hogwarts', 'Phoenix'),
+  e('harry potter prisoner azkaban', 'Dementors', 'Time turner', 'Sirius Black', 'Marauders map'),
+  e('harry potter goblet fire', 'Triwizard', 'Voldemort returns', 'Hogwarts', 'Maze'),
+  e('harry potter order phoenix', 'DA meetings', 'Prophecy', 'Voldemort fight', 'Ministry'),
+  e('harry potter half blood prince', 'Horcruxes', 'Potion book', 'Dumbledore', 'Snape'),
+  e('harry potter deathly hallows', 'Hallows', 'Horcrux hunt', 'War', 'Elder Wand'),
+  e('star wars new hope', 'Luke', 'Death Star', 'Force', 'Rebellion'),
+  e('star wars empire strikes back', 'Hoth', 'I am your father', 'Yoda', 'Cloud City'),
+  e('star wars return jedi', 'Endor', 'Jabba', 'Throne room', 'Second Death Star'),
+  e('star wars phantom menace', 'Podrace', 'Darth Maul', 'Gungans', 'Jedi council'),
+  e('star wars attack clones', 'Clone army', 'Geonosis', 'Anakin', 'Padme'),
+  e('star wars revenge sith', 'Order 66', 'Mustafar', 'Anakin turns', 'Palpatine'),
+  e('force awakens', 'Rey', 'Finn', 'Kylo Ren', 'Starkiller Base'),
+  e('last jedi', 'Luke exile', 'Canto Bight', 'Throne room', 'Reylo'),
+  e('rise of skywalker', 'Palpatine returns', 'Exegol', 'Wayfinder', 'Final battle'),
+  e('rogue one', 'Death Star plans', 'Jyn Erso', 'Scarif', 'Sacrifice'),
+  e('solo', 'Han backstory', 'Kessel run', 'Lando', 'Falcon'),
+  e('guardians of the galaxy', 'Mixtape', 'Star-Lord', 'Rocket', 'Groot'),
+  e('guardians of the galaxy 2', 'Ego planet', 'Yondu', 'Family', 'Soundtrack'),
+  e('dr strange', 'Sorcerer', 'Mystic arts', 'Sanctum', 'Time loop'),
+  e('black widow', 'Avenger', 'Red Room', 'Family reunion', 'Budapest'),
+  e('captain marvel', 'Carol Danvers', 'Skrulls', '90s setting', 'Cosmic powers'),
+  e('iron man', 'Tony Stark', 'Suit', 'Arc reactor', 'First MCU'),
+  e('iron man 2', 'Whiplash', 'Palladium', 'Hammer drones', 'Monaco race'),
+  e('iron man 3', 'Mandarin twist', 'Extremis', 'House party protocol', 'PTSD'),
+  e('thor', 'Asgard', 'Hammer', 'Bifrost', 'God of Thunder'),
+  e('thor dark world', 'Dark elves', 'Aether', 'Portal convergence', 'Loki helps'),
+  e('thor ragnarok', 'Hela', 'Sakaar', 'Gladiator', 'Led Zeppelin track'),
+  e('captain america first avenger', 'WWII', 'Super soldier', 'Hydra', 'Shield'),
+  e('captain america winter soldier', 'Bucky', 'Hydra in SHIELD', 'Elevator fight', 'Washington D.C.'),
+  e('captain america civil war', 'Accords', 'Team cap vs iron man', 'Airport battle', 'Zemo'),
 ];
+
+function fillTo100(list, label, prefix) {
+  const out = [...list];
+  const seen = new Set(out.map((item) => item.word));
+  let i = 1;
+  while (out.length < 100) {
+    const word = `${prefix}${i}`;
+    if (!seen.has(word)) {
+      out.push(e(word, `${label} clue ${i}`, `${label} tidbit ${i}`, 'Training filler', 'Replayable item'));
+      seen.add(word);
+    }
+    i += 1;
+  }
+  return out;
+}
+
+module.exports = fillTo100(baseMovies, 'Movie', 'movieextra');

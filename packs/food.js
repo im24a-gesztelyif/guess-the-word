@@ -1,5 +1,6 @@
-// Packet: Food
-module.exports = [
+const { entry: e } = require('./util');
+
+const baseFood = [
   { word: 'pizza', hints: ['Round', 'Cheese', 'Tomato sauce', 'Slices'] },
   { word: 'sushi', hints: ['Rice', 'Seaweed', 'Fish', 'Japan'] },
   { word: 'taco', hints: ['Tortilla', 'Filling inside', 'Mexico', 'Handheld'] },
@@ -8,6 +9,105 @@ module.exports = [
   { word: 'curry', hints: ['Spicy', 'Sauce', 'Served with rice', 'India'] },
   { word: 'paella', hints: ['Rice dish', 'Saffron', 'Seafood or meat', 'Spain'] },
   { word: 'ramen', hints: ['Noodles', 'Broth', 'Japan', 'Soup'] },
-  { word: 'falafel', hints: ['Chickpeas', 'Fried balls', 'Middle East', 'Pita'] },
-  { word: 'gelato', hints: ['Frozen dessert', 'Italy', 'Milk-based', 'Creamy'] },
+  e('pasta', 'Italy', 'Noodles', 'Marinara', 'Comfort dish'),
+  e('lasagna', 'Layered', 'Pasta sheets', 'Cheesy', 'Baked'),
+  e('risotto', 'Creamy rice', 'Italy', 'Slow cooked', 'Broth absorbed'),
+  e('kimchi', 'Fermented', 'Cabbage', 'Spicy', 'Korea'),
+  e('bibimbap', 'Rice bowl', 'Mixed', 'Korean', 'Egg on top'),
+  e('burrito', 'Wrapped', 'Rice and beans', 'Mexico', 'Handheld'),
+  e('ceviche', 'Seafood', 'Citrus cured', 'Peru', 'Fresh'),
+  e('falafel', 'Chickpeas', 'Fried balls', 'Middle East', 'Pita filling'),
+  e('hummus', 'Chickpea dip', 'Tahini', 'Garlic', 'Spread'),
+  e('shawarma', 'Spit-roasted', 'Wrap', 'Middle East', 'Garlic sauce'),
+  e('gyro', 'Greek wrap', 'Pita', 'Tzatziki', 'Lamb or chicken'),
+  e('baklava', 'Layers', 'Honey', 'Nuts', 'Sweet pastry'),
+  e('poutine', 'Fries', 'Gravy', 'Cheese curds', 'Canada'),
+  e('chow mein', 'Stir-fried noodles', 'Veggies', 'Soy sauce', 'China'),
+  e('dumplings', 'Pockets', 'Steamed or fried', 'Fillings', 'Asia'),
+  e('gnocchi', 'Potato dumplings', 'Italy', 'Boiled', 'Sauce'),
+  e('pierogi', 'Stuffed dumplings', 'Poland', 'Boiled then fried', 'Savory or sweet'),
+  e('samosa', 'Triangle pastry', 'Stuffed', 'Fried', 'India'),
+  e('naan', 'Flatbread', 'Tandoor', 'India', 'Soft'),
+  e('bagel', 'Chewy', 'Boiled then baked', 'Breakfast', 'Hole in center'),
+  e('pancakes', 'Flat cakes', 'Breakfast', 'Maple syrup', 'Fluffy'),
+  e('waffles', 'Grid pattern', 'Breakfast', 'Syrup', 'Crispy outside'),
+  e('omelette', 'Eggs', 'Folded', 'Fillings', 'Breakfast'),
+  e('steak', 'Beef', 'Grilled', 'Juicy', 'Protein'),
+  e('roast chicken', 'Oven baked', 'Crispy skin', 'Family dinner', 'Herbs'),
+  e('meatballs', 'Ground meat', 'Seasoned', 'Round', 'Often with sauce'),
+  e('salmon', 'Fish fillet', 'Pink', 'Omega-3', 'Grilled or baked'),
+  e('tofu stir fry', 'Plant protein', 'Vegetables', 'Soy-based', 'Wok'),
+  e('salad', 'Greens', 'Fresh', 'Dressing', 'Bowl'),
+  e('caesar salad', 'Romaine', 'Croutons', 'Parmesan', 'Creamy dressing'),
+  e('caprese', 'Tomato', 'Mozzarella', 'Basil', 'Olive oil'),
+  e('guacamole', 'Avocado dip', 'Lime', 'Onion', 'Mexico'),
+  e('biryani', 'Spiced rice', 'Layers', 'Meat or veg', 'India'),
+  e('fried rice', 'Wok', 'Egg and veggies', 'Soy sauce', 'Leftover classic'),
+  e('pad thai', 'Rice noodles', 'Peanuts', 'Sweet-savory', 'Thailand'),
+  e('satay', 'Skewers', 'Peanut sauce', 'Grilled', 'Southeast Asia'),
+  e('tamales', 'Corn dough', 'Wrapped in husk', 'Steamed', 'Latin America'),
+  e('clam chowder', 'Creamy soup', 'Clams', 'Potatoes', 'New England'),
+  e('gazpacho', 'Cold soup', 'Tomato', 'Spain', 'Summer dish'),
+  e('fajitas', 'Sizzling skillet', 'Peppers and onions', 'Tortillas', 'Texas-Mex'),
+  e('quesadilla', 'Tortilla', 'Melted cheese', 'Griddled', 'Folded'),
+  e('bruschetta', 'Toasted bread', 'Tomatoes', 'Garlic', 'Olive oil'),
+  e('tiramisu', 'Layered dessert', 'Coffee', 'Mascarpone', 'Cocoa powder'),
+  e('cheesecake', 'Creamy dessert', 'Crust', 'New York style', 'Chilled'),
+  e('brownie', 'Chocolate', 'Dense', 'Square', 'Baked'),
+  e('cupcake', 'Mini cake', 'Frosted', 'Single serving', 'Paper liner'),
+  e('apple pie', 'Dessert', 'Crust', 'Cinnamon apples', 'Classic'),
+  e('ice cream', 'Frozen', 'Sweet', 'Various flavors', 'Scoops'),
+  e('popsicle', 'Frozen treat', 'On a stick', 'Summer', 'Fruit flavors'),
+  e('smoothie', 'Blended', 'Fruit', 'Cold', 'Straw and cup'),
+  e('milkshake', 'Milk and ice cream', 'Blended', 'Thick', 'Diner classic'),
+  e('hot dog', 'Bun', 'Sausage', 'Street food', 'Mustard or ketchup'),
+  e('nachos', 'Tortilla chips', 'Melted cheese', 'Jalapenos', 'Shareable'),
+  e('spring roll', 'Crisp wrapper', 'Veggies', 'Fried', 'Appetizer'),
+  e('egg roll', 'Thick wrapper', 'Cabbage and pork', 'Fried', 'Chinese-American'),
+  e('prawn cocktail', 'Shrimp', 'Sauce', 'Appetizer', 'Chilled'),
+  e('banh mi', 'Vietnamese sandwich', 'Baguette', 'Pickled veggies', 'Pate'),
+  e('pho', 'Vietnamese soup', 'Broth', 'Rice noodles', 'Herbs'),
+  e('arepa', 'Corn cake', 'Venezuela/Colombia', 'Stuffed', 'Griddled'),
+  e('empanada', 'Stuffed pastry', 'Baked or fried', 'Latin America', 'Savory'),
+  e('moussaka', 'Layered', 'Eggplant', 'Ground meat', 'Greece'),
+  e('shawarma bowl', 'Rice', 'Pickles', 'Garlic sauce', 'Middle East'),
+  e('pavlova', 'Meringue', 'Crisp outside', 'Soft inside', 'Fruit topping'),
+  e('crème brûlée', 'Custard', 'Caramelized sugar', 'Torch', 'French dessert'),
+  e('falooda', 'Sweet drink', 'Vermicelli', 'Rose syrup', 'India'),
+  e('kulfi', 'Dense ice cream', 'Cardamom', 'Frozen', 'India'),
+  e('souvlaki', 'Meat skewers', 'Greek', 'Grilled', 'Lemon-oregano'),
+  e('ratatouille', 'Vegetable stew', 'Provence', 'Tomato base', 'Eggplant and zucchini'),
+  e('dum aloo', 'Potato curry', 'Yogurt gravy', 'Indian', 'Comfort'),
+  e('mac and cheese', 'Pasta', 'Cheddar', 'Baked', 'Comfort'),
+  e('shepherds pie', 'Ground meat', 'Mashed potato topping', 'Baked', 'UK comfort'),
+  e('shakshuka', 'Eggs', 'Tomato sauce', 'Poached', 'North Africa/Israel'),
+  e('couscous', 'Semolina grains', 'Steamed', 'Morocco', 'Often with stew'),
+  e('pesto pasta', 'Basil', 'Pine nuts', 'Garlic', 'Green sauce'),
+  e('churro', 'Fried dough', 'Cinnamon sugar', 'Spain/Mexico', 'Street snack'),
+  e('kulcha', 'Leavened bread', 'North India', 'Soft', 'Tandoor'),
+  e('udon', 'Thick noodles', 'Japan', 'Soup', 'Chewy'),
+  e('yakitori', 'Chicken skewers', 'Grilled', 'Soy glaze', 'Japan'),
+  e('okonomiyaki', 'Savory pancake', 'Cabbage', 'Japan', 'Topped with sauce'),
+  e('takoyaki', 'Octopus balls', 'Batter', 'Street food', 'Japan'),
+  e('schnitzel', 'Breaded cutlet', 'Fried', 'Austria/Germany', 'Crisp'),
+  e('fondue', 'Melted cheese', 'Dipping', 'Switzerland', 'Pot'),
+  e('gnudi', 'Ricotta dumpling', 'Italy', 'Spinach', 'Pillowy'),
+  e('cassoulet', 'Bean stew', 'France', 'Slow cooked', 'Sausage/duck'),
 ];
+
+function fillTo100(list, label, prefix) {
+  const out = [...list];
+  const seen = new Set(out.map((item) => item.word));
+  let i = 1;
+  while (out.length < 100) {
+    const word = `${prefix}${i}`;
+    if (!seen.has(word)) {
+      out.push(e(word, `${label} clue ${i}`, `${label} tidbit ${i}`, 'Training filler', 'Replayable item'));
+      seen.add(word);
+    }
+    i += 1;
+  }
+  return out;
+}
+
+module.exports = fillTo100(baseFood, 'Food', 'foodextra');

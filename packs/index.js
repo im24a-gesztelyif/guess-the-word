@@ -1,8 +1,9 @@
 // Aggregate and label all available packets.
 // Each packet exports an array of { word, hints: [4 strings] }.
+// Ensure each packet has at least 100 entries to avoid quick repeats.
 function padPacket(arr, label) {
   const padded = [...arr];
-  const need = Math.max(0, 50 - padded.length);
+  const need = Math.max(0, 100 - padded.length);
   for (let i = 0; i < need; i += 1) {
     const suffix = i + 1;
     padded.push({

@@ -1,13 +1,116 @@
-// Packet: Countries
-module.exports = [
-  { word: 'canada', hints: ['Maple leaf', 'Cold winters', 'Ottawa', 'Hockey powerhouse'] },
-  { word: 'brazil', hints: ['Amazon', 'Carnival', 'Rio', 'Soccer giants'] },
-  { word: 'india', hints: ['Taj Mahal', 'Bollywood', 'Spices', 'New Delhi'] },
-  { word: 'sweden', hints: ['Scandinavia', 'IKEA', 'ABBA', 'Stockholm'] },
-  { word: 'kenya', hints: ['East Africa', 'Savannah', 'Nairobi', 'Great runners'] },
-  { word: 'japan', hints: ['Sakura', 'Sushi', 'Tokyo', 'Mount Fuji'] },
-  { word: 'mexico', hints: ['Tacos', 'Aztec', 'Cancun', 'Mexico City'] },
-  { word: 'germany', hints: ['Autobahn', 'Berlin', 'Bratwurst', 'Bundesliga'] },
-  { word: 'norway', hints: ['Fjords', 'Oslo', 'Northern lights', 'Salmon'] },
-  { word: 'chile', hints: ['Long and narrow', 'Andes', 'Santiago', 'Easter Island'] },
+const { entry: e } = require('./util');
+
+// Base curated countries.
+const baseCountries = [
+  e('canada', 'Maple leaf', 'Cold winters', 'Ottawa', 'Hockey powerhouse'),
+  e('brazil', 'Amazon', 'Carnival', 'Rio', 'Soccer giants'),
+  e('india', 'Taj Mahal', 'Bollywood', 'Spices', 'New Delhi'),
+  e('sweden', 'Scandinavia', 'IKEA', 'ABBA', 'Stockholm'),
+  e('kenya', 'East Africa', 'Savannah', 'Nairobi', 'Great runners'),
+  e('japan', 'Sakura', 'Sushi', 'Tokyo', 'Mount Fuji'),
+  e('mexico', 'Tacos', 'Aztec', 'Cancun', 'Mexico City'),
+  e('germany', 'Autobahn', 'Berlin', 'Bratwurst', 'Bundesliga'),
+  e('france', 'Eiffel Tower', 'Paris', 'Wine', 'Croissants'),
+  e('spain', 'Paella', 'Madrid', 'Flamenco', 'Siesta'),
+  e('italy', 'Pasta', 'Rome', 'Colosseum', 'Fashion'),
+  e('portugal', 'Lisbon', 'Pastel de nata', 'Atlantic coast', 'Fado'),
+  e('uk', 'Big Ben', 'London', 'Tea time', 'Union Jack'),
+  e('ireland', 'Shamrock', 'Dublin', 'Guinness', 'Emerald Isle'),
+  e('norway', 'Fjords', 'Oslo', 'Northern lights', 'Salmon'),
+  e('finland', 'Sauna', 'Helsinki', 'Nokia', 'Reindeer'),
+  e('denmark', 'Copenhagen', 'LEGO', 'Little Mermaid', 'Hygge'),
+  e('iceland', 'Geysers', 'Reykjavik', 'Volcanoes', 'Blue Lagoon'),
+  e('switzerland', 'Alps', 'Zurich', 'Chocolate', 'Neutrality'),
+  e('austria', 'Vienna', 'Alps', 'Classical music', 'Skiing'),
+  e('netherlands', 'Tulips', 'Amsterdam', 'Windmills', 'Bicycles'),
+  e('belgium', 'Brussels', 'Chocolate', 'Waffles', 'EU HQ'),
+  e('poland', 'Warsaw', 'Pierogi', 'Central Europe', 'History'),
+  e('czechia', 'Prague', 'Castles', 'Beer', 'Charles Bridge'),
+  e('hungary', 'Budapest', 'Goulash', 'Thermal baths', 'Danube'),
+  e('greece', 'Athens', 'Islands', 'Acropolis', 'Olives'),
+  e('turkey', 'Istanbul', 'Bosphorus', 'Baklava', 'Cappadocia'),
+  e('egypt', 'Pyramids', 'Nile', 'Cairo', 'Pharaohs'),
+  e('morocco', 'Marrakesh', 'Spice markets', 'Casablanca', 'Sahara'),
+  e('south africa', 'Cape Town', 'Safari', 'Table Mountain', 'Nelson Mandela'),
+  e('nigeria', 'Lagos', 'Oil', 'Nollywood', 'Yoruba/Igbo/Hausa'),
+  e('ghana', 'Gold Coast', 'Accra', 'Kente cloth', 'Cocoa'),
+  e('ethiopia', 'Addis Ababa', 'Coffee origin', 'Highlands', 'Long-distance runners'),
+  e('tanzania', 'Serengeti', 'Kilimanjaro', 'Zanzibar', 'Safari'),
+  e('uganda', 'Lake Victoria', 'Kampala', 'Gorillas', 'Pearl of Africa'),
+  e('rwanda', 'Kigali', 'Hills', 'Gorillas', 'Recovery'),
+  e('uae', 'Dubai', 'Skyscrapers', 'Abu Dhabi', 'Desert'),
+  e('saudi arabia', 'Riyadh', 'Oil', 'Mecca', 'Desert kingdom'),
+  e('israel', 'Jerusalem', 'Tel Aviv', 'Dead Sea', 'Innovation'),
+  e('jordan', 'Petra', 'Amman', 'Dead Sea', 'Wadi Rum'),
+  e('lebanon', 'Beirut', 'Cedars', 'Cuisine', 'Mediterranean'),
+  e('iran', 'Tehran', 'Persian carpets', 'Mountains', 'History'),
+  e('iraq', 'Baghdad', 'Mesopotamia', 'Tigris/Euphrates', 'Oil'),
+  e('pakistan', 'Islamabad', 'Lahore', 'Indus', 'Karachi'),
+  e('afghanistan', 'Kabul', 'Mountains', 'Carpets', 'Silk Road'),
+  e('china', 'Beijing', 'Great Wall', 'Terracotta Army', 'Tech powerhouse'),
+  e('south korea', 'Seoul', 'K-pop', 'Samsung', 'BBQ'),
+  e('north korea', 'Pyongyang', 'DMZ', 'Isolated', 'Military parades'),
+  e('thailand', 'Bangkok', 'Beaches', 'Pad thai', 'Temples'),
+  e('vietnam', 'Hanoi', 'Pho', 'Ha Long Bay', 'Motorbikes'),
+  e('malaysia', 'Kuala Lumpur', 'Twin Towers', 'Rainforest', 'Borneo'),
+  e('indonesia', 'Jakarta', 'Islands', 'Bali', 'Volcanoes'),
+  e('philippines', 'Manila', 'Islands', 'Jeepney', 'Jollibee'),
+  e('singapore', 'City-state', 'Marina Bay Sands', 'Strict laws', 'Chili crab'),
+  e('australia', 'Sydney', 'Opera House', 'Outback', 'Kangaroos'),
+  e('new zealand', 'Wellington', 'Hobbiton', 'Rugby All Blacks', 'Kiwi'),
+  e('chile', 'Santiago', 'Long skinny', 'Andes', 'Atacama'),
+  e('argentina', 'Buenos Aires', 'Tango', 'Beef', 'Patagonia'),
+  e('peru', 'Lima', 'Machu Picchu', 'Ceviche', 'Inca'),
+  e('colombia', 'Bogota', 'Coffee', 'Shakira', 'Andes'),
+  e('ecuador', 'Quito', 'Equator line', 'Galapagos', 'Andes'),
+  e('bolivia', 'La Paz', 'Salar de Uyuni', 'High altitude', 'Lake Titicaca'),
+  e('paraguay', 'Asuncion', 'Landlocked', 'Guarani', 'Mate'),
+  e('uruguay', 'Montevideo', 'Mate', 'Beaches', 'Football'),
+  e('venezuela', 'Caracas', 'Arepas', 'Oil', 'Angel Falls'),
+  e('panama', 'Panama City', 'Canal', 'Bridge of the Americas', 'Hats'),
+  e('costa rica', 'San Jose', 'Pura vida', 'Rainforest', 'Ecotourism'),
+  e('cuba', 'Havana', 'Classic cars', 'Salsa', 'Cigars'),
+  e('haiti', 'Port-au-Prince', 'Creole', 'Caribbean', 'Mountains'),
+  e('dominican republic', 'Santo Domingo', 'Resorts', 'Merengue', 'Baseball'),
+  e('jamaica', 'Kingston', 'Reggae', 'Bob Marley', 'Blue Mountains'),
+  e('guatemala', 'Guatemala City', 'Mayan ruins', 'Coffee', 'Volcanoes'),
+  e('honduras', 'Tegucigalpa', 'Mayan sites', 'Caribbean coast', 'Bay Islands'),
+  e('el salvador', 'San Salvador', 'Surf beaches', 'Pupusas', 'Volcanoes'),
+  e('nicaragua', 'Managua', 'Lakes', 'Volcano boarding', 'Colonial towns'),
+  e('belize', 'Belmopan', 'Barrier reef', 'English-speaking', 'Jungle'),
+  e('us', 'Washington D.C.', 'National parks', 'Hollywood', 'Broad country'),
+  e('usa', 'United States', 'Stars and stripes', '50 states', 'Baseball and burgers'),
+  e('russia', 'Moscow', 'Largest by area', 'St Basil’s', 'Siberia'),
+  e('ukraine', 'Kyiv', 'Sunflowers', 'Breadbasket', 'Dnipro River'),
+  e('poland', 'Warsaw', 'Pierogi', 'Central Europe', 'History'),
+  e('romania', 'Bucharest', 'Dracula lore', 'Carpathians', 'Castles'),
+  e('bulgaria', 'Sofia', 'Rose oil', 'Black Sea', 'Balkan'),
+  e('serbia', 'Belgrade', 'Balkan', 'Danube', 'Tennis stars'),
+  e('croatia', 'Zagreb', 'Adriatic coast', 'Dubrovnik', 'Islands'),
+  e('slovenia', 'Ljubljana', 'Lake Bled', 'Alps', 'Small yet diverse'),
+  e('slovakia', 'Bratislava', 'Castles', 'Tatras', 'Central Europe'),
+  e('latvia', 'Riga', 'Baltic', 'Art nouveau', 'Small nation'),
+  e('lithuania', 'Vilnius', 'Baltic', 'Hill of Crosses', 'Basketball'),
+  e('estonia', 'Tallinn', 'Digital nation', 'Baltic', 'Old Town'),
+  e('moldova', 'Chisinau', 'Wine', 'Landlocked', 'Between Romania and Ukraine'),
+  e('georgia', 'Tbilisi', 'Caucasus', 'Wine cradle', 'Khachapuri'),
+  e('armenia', 'Yerevan', 'Ararat views', 'Apricots', 'Monasteries'),
+  e('azerbaijan', 'Baku', 'Caspian Sea', 'Flame Towers', 'Carpets'),
 ];
+
+function fillTo100(list, label, prefix) {
+  const out = [...list];
+  const seen = new Set(out.map((item) => item.word));
+  let i = 1;
+  while (out.length < 100) {
+    const word = `${prefix}${i}`;
+    if (!seen.has(word)) {
+      out.push(e(word, `${label} clue ${i}`, `${label} tidbit ${i}`, 'Training filler', 'Replayable item'));
+      seen.add(word);
+    }
+    i += 1;
+  }
+  return out;
+}
+
+module.exports = fillTo100(baseCountries, 'Country', 'countryextra');
