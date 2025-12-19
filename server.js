@@ -38,6 +38,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //     lastRevealCount: number,
 //     lastRoundScores: Record<socketId, number>,
 //     firstCorrectId: string | null,
+//     skipVotes: Set<socketId>,
 //   }
 //   lastSolution?: string
 // }
@@ -142,6 +143,8 @@ function emitRoomState(room) {
           timeLeft,
           revealCount: room.round.lastRevealCount,
           visibleHints: room.round.hints.slice(0, room.round.lastRevealCount),
+          skipVotes: room.round.skipVotes ? room.round.skipVotes.size : 0,
+          skipTotal: room.players.size,
         }
       : null,
   };
@@ -156,7 +159,16 @@ function clearRound(room) {
 function endRound(room, reason = 'time') {
   // Guard against double end or missing round data.
   if (!room || room.phase !== 'running' || !room.round) return;
-  const { lastRoundScores = {}, hints, word } = room.round;
+  const { hints, word } = room.round;
+  let { lastRoundScores = {} } = room.round;
+  if (reason === 'skipped' && Object.keys(lastRoundScores).length > 0) {
+    // Remove any points awarded this round if it was skipped.
+    Object.entries(lastRoundScores).forEach(([playerId, points]) => {
+      const player = room.players.get(playerId);
+      if (player) player.score -= points;
+    });
+    lastRoundScores = {};
+  }
   room.lastSolution = word; // Preserve solution before clearing timers.
   const isFinal = room.currentRound >= room.settings.totalRounds;
   clearRound(room);
@@ -225,6 +237,7 @@ function startRound(room, roundConfig) {
     lastRevealCount: 1,
     lastRoundScores: {},
     firstCorrectId: null,
+    skipVotes: new Set(),
   };
   room.round = round;
   room.lastSolution = round.word; // store for safe round end
@@ -467,6 +480,22 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('round:skipVote', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.phase !== 'running' || !room.round) return;
+    if (!room.players.has(socket.id)) return;
+    if (!room.round.skipVotes) room.round.skipVotes = new Set();
+    if (room.round.skipVotes.has(socket.id)) return;
+    room.round.skipVotes.add(socket.id);
+    io.to(room.code).emit('round:skipVote', {
+      count: room.round.skipVotes.size,
+      total: room.players.size,
+    });
+    if (room.round.skipVotes.size >= room.players.size) {
+      endRound(room, 'skipped');
+    }
+  });
+
   socket.on('host:skipRound', ({ roomCode }) => {
     const room = rooms.get(roomCode);
     if (!room || room.hostId !== socket.id) return;
@@ -474,10 +503,49 @@ io.on('connection', (socket) => {
     endRound(room, 'skipped');
   });
 
+  socket.on('host:kickPlayer', ({ roomCode, playerId }, cb) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostId !== socket.id) return cb?.({ error: 'Only host can kick' });
+    if (!playerId || playerId === room.hostId) return cb?.({ error: 'Cannot kick host' });
+    if (!room.players.has(playerId)) return cb?.({ error: 'Player not found' });
+
+    room.players.delete(playerId);
+    room.round?.skipVotes?.delete(playerId);
+    const target = io.sockets.sockets.get(playerId);
+    if (target) {
+      target.leave(roomCode);
+      target.emit('room:kicked', { roomCode });
+    }
+
+    if (room.players.size === 0) {
+      clearRound(room);
+      rooms.delete(roomCode);
+    } else {
+      io.to(roomCode).emit('room:players', buildScoreboard(room));
+      emitRoomInfo(room);
+      emitRoomState(room);
+      const allGuessed =
+        room.phase === 'running' &&
+        room.round &&
+        Array.from(room.players.values()).every((p) => p.guessedCorrect);
+      if (allGuessed) {
+        endRound(room, 'all-guessed');
+      } else if (room.phase === 'running' && room.round?.skipVotes) {
+        if (room.round.skipVotes.size >= room.players.size) {
+          endRound(room, 'skipped');
+        }
+      }
+    }
+
+    broadcastRoomList();
+    cb?.({ ok: true });
+  });
+
   socket.on('room:leave', ({ roomCode }) => {
     const room = rooms.get(roomCode);
     if (!room) return;
     room.players.delete(socket.id);
+    room.round?.skipVotes?.delete(socket.id);
     socket.leave(roomCode);
     if (room.hostId === socket.id) {
       const next = room.players.values().next().value;
@@ -486,6 +554,8 @@ io.on('connection', (socket) => {
       if (next) {
         io.to(roomCode).emit('room:host', { hostName: room.hostName, hostId: room.hostId });
         io.to(next.id).emit('room:promoted', { roomCode });
+        emitRoomInfo(room);
+        emitRoomState(room);
       }
     }
     if (room.players.size === 0) {
@@ -493,6 +563,21 @@ io.on('connection', (socket) => {
       rooms.delete(roomCode);
     } else {
       io.to(roomCode).emit('room:players', buildScoreboard(room));
+      emitRoomInfo(room);
+      emitRoomState(room);
+      if (room.phase === 'running' && room.round) {
+        const allGuessed = Array.from(room.players.values()).every((p) => p.guessedCorrect);
+        if (allGuessed) {
+          endRound(room, 'all-guessed');
+          broadcastRoomList();
+          return;
+        }
+      }
+      if (room.phase === 'running' && room.round?.skipVotes) {
+        if (room.round.skipVotes.size >= room.players.size) {
+          endRound(room, 'skipped');
+        }
+      }
     }
     broadcastRoomList();
   });
@@ -503,6 +588,7 @@ io.on('connection', (socket) => {
       const room = rooms.get(code);
       if (!room) return;
       room.players.delete(socket.id);
+      room.round?.skipVotes?.delete(socket.id);
       if (room.hostId === socket.id) {
         // If host leaves, promote the next player if possible.
         const next = room.players.values().next().value;
@@ -511,8 +597,6 @@ io.on('connection', (socket) => {
         if (next) {
           io.to(code).emit('room:host', { hostName: room.hostName, hostId: room.hostId });
           io.to(next.id).emit('room:promoted', { roomCode: code });
-          emitRoomInfo(room);
-          emitRoomState(room);
         }
       }
       if (room.players.size === 0) {
@@ -520,6 +604,20 @@ io.on('connection', (socket) => {
         rooms.delete(code);
       } else {
         io.to(code).emit('room:players', buildScoreboard(room));
+        emitRoomInfo(room);
+        emitRoomState(room);
+        if (room.phase === 'running' && room.round) {
+          const allGuessed = Array.from(room.players.values()).every((p) => p.guessedCorrect);
+          if (allGuessed) {
+            endRound(room, 'all-guessed');
+            return;
+          }
+        }
+        if (room.phase === 'running' && room.round?.skipVotes) {
+          if (room.round.skipVotes.size >= room.players.size) {
+            endRound(room, 'skipped');
+          }
+        }
       }
     });
     broadcastRoomList();

@@ -100,19 +100,4 @@ const baseObjects = [
   e('paper shredder', 'Cuts paper', 'Confetti', 'Security', 'Office'),
 ];
 
-function fillTo100(list, label, prefix) {
-  const out = [...list];
-  const seen = new Set(out.map((item) => item.word));
-  let i = 1;
-  while (out.length < 100) {
-    const word = `${prefix}${i}`;
-    if (!seen.has(word)) {
-      out.push(e(word, `${label} clue ${i}`, `${label} tidbit ${i}`, 'Training filler', 'Replayable item'));
-      seen.add(word);
-    }
-    i += 1;
-  }
-  return out;
-}
-
-module.exports = fillTo100(baseObjects, 'Object', 'objectextra');
+module.exports = baseObjects;

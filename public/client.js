@@ -40,6 +40,7 @@
   const guessControls = document.getElementById('guessControls');
   const hostPanel = document.getElementById('hostPanel');
   const roundLabel = document.getElementById('roundLabel');
+  const skipVoteBtn = document.getElementById('skipVoteBtn');
   const startRoundBtn = document.getElementById('startRoundBtn');
   const settingDuration = document.getElementById('settingDuration');
   const settingRounds = document.getElementById('settingRounds');
@@ -61,6 +62,7 @@
   const state = {
     roomCode: null,
     isHost: false,
+    hostId: null,
     phase: 'waiting',
     currentRound: 0,
     totalRounds: 0,
@@ -68,12 +70,21 @@
     packetName: '',
     wordLength: 0,
     wordParts: [],
+    skipCount: 0,
+    skipTotal: 0,
+    hasVotedSkip: false,
+    playerCount: 0,
     finalPending: false,
     finalPodium: [],
   };
+  let selfId = null;
   let guessChars = [];
 
   // --- UI helpers ---
+  socket.on('connect', () => {
+    selfId = socket.id;
+    state.isHost = state.hostId === selfId;
+  });
   function showGame() {
     lobbySection.classList.add('hidden');
     hero.classList.add('hidden');
@@ -85,12 +96,17 @@
     Object.assign(state, {
       roomCode: null,
       isHost: false,
+      hostId: null,
       phase: 'waiting',
       currentRound: 0,
       totalRounds: 0,
       packetName: '',
       wordLength: 0,
       wordParts: [],
+      skipCount: 0,
+      skipTotal: 0,
+      hasVotedSkip: false,
+      playerCount: 0,
     });
     lobbySection.classList.remove('hidden');
     hero.classList.remove('hidden');
@@ -139,6 +155,20 @@
       li.textContent = 'No guesses yet';
       guessesList.appendChild(li);
     }
+  }
+
+  function updateSkipButton() {
+    if (!skipVoteBtn) return;
+    if (state.phase !== 'running') {
+      skipVoteBtn.classList.add('hidden');
+      skipVoteBtn.disabled = true;
+      return;
+    }
+    skipVoteBtn.classList.remove('hidden');
+    skipVoteBtn.disabled = state.hasVotedSkip;
+    const total = state.skipTotal || state.playerCount || 0;
+    const count = state.skipCount || 0;
+    skipVoteBtn.textContent = total ? `Vote to skip (${count}/${total})` : 'Vote to skip';
   }
 
   function showLeaderboard(lastRoundScores = {}, scores = []) {
@@ -209,25 +239,55 @@
     // Auto-scroll to latest like a chat app.
     guessesList.scrollTop = guessesList.scrollHeight;
   }
-
   function updateScoreboard(scores, lastRoundScores = {}) {
     scoreList.innerHTML = '';
     if (!scores?.length) return;
+    state.playerCount = scores.length;
     const maxScore = Math.max(...scores.map((s) => s.score));
     scores
       .slice()
       .sort((a, b) => b.score - a.score)
       .forEach((player) => {
         const li = document.createElement('li');
+        const row = document.createElement('div');
+        row.className = 'score-row';
+        const nameWrap = document.createElement('div');
+        nameWrap.className = 'score-name';
+        const name = document.createElement('strong');
+        name.textContent = player.name;
+        nameWrap.appendChild(name);
+        if (player.id === state.hostId) {
+          const badge = document.createElement('span');
+          badge.className = 'host-badge';
+          badge.textContent = 'Host';
+          nameWrap.appendChild(badge);
+        }
+        const scoreText = document.createElement('span');
         const roundPoints = lastRoundScores[player.id];
-        li.innerHTML = `<strong>${player.name}</strong> — ${player.score} pts ${
-          roundPoints ? `( +${roundPoints} )` : ''
-        }`;
+        scoreText.textContent = `${player.score} pts${roundPoints ? ` (+${roundPoints})` : ''}`;
+        const rightWrap = document.createElement('div');
+        rightWrap.className = 'score-actions';
+        rightWrap.appendChild(scoreText);
+        if (state.isHost && player.id !== selfId) {
+          const kickBtn = document.createElement('button');
+          kickBtn.className = 'kick-btn small';
+          kickBtn.textContent = 'Kick';
+          kickBtn.onclick = () => {
+            socket.emit('host:kickPlayer', { roomCode: state.roomCode, playerId: player.id }, (res) => {
+              if (res?.error) alert(res.error);
+            });
+          };
+          rightWrap.appendChild(kickBtn);
+        }
+        row.appendChild(nameWrap);
+        row.appendChild(rightWrap);
+        li.appendChild(row);
         if (player.score === maxScore && maxScore > 0) {
           li.style.borderColor = '#22c55e';
         }
         scoreList.appendChild(li);
       });
+    updateSkipButton();
   }
 
   function buildSegments(wordParts) {
@@ -264,7 +324,7 @@
 
   function handleKey(e) {
     if (state.phase !== 'running') return;
-    if (/^[a-zA-Z]$/.test(e.key)) {
+    if (/^[a-zA-Z0-9]$/.test(e.key)) {
       const nextIndex = guessChars.findIndex((c) => !c);
       const idx = nextIndex === -1 ? guessChars.length - 1 : nextIndex;
       guessChars[idx] = e.key.toUpperCase();
@@ -313,6 +373,7 @@
     } else {
       hostPanel.classList.add('hidden');
     }
+    updateSkipButton();
   }
 
   // --- Event bindings ---
@@ -408,6 +469,13 @@
     }
   };
 
+  skipVoteBtn.onclick = () => {
+    if (!state.roomCode || state.phase !== 'running' || state.hasVotedSkip) return;
+    state.hasVotedSkip = true;
+    updateSkipButton();
+    socket.emit('round:skipVote', { roomCode: state.roomCode });
+  };
+
   submitGuessBtn.onclick = submitGuess;
   window.addEventListener('keydown', handleKey);
 
@@ -425,12 +493,16 @@
 
   socket.on('room:players', (scores) => updateScoreboard(scores));
 
-  socket.on('room:host', ({ hostName }) => {
-    infoHost.textContent = hostName || '—';
+  socket.on('room:host', ({ hostName, hostId }) => {
+    state.hostId = hostId || state.hostId;
+    state.isHost = state.hostId === selfId;
+    infoHost.textContent = hostName || 'Host';
+    renderPhase();
   });
 
   socket.on('room:promoted', () => {
     state.isHost = true;
+    state.hostId = selfId;
     renderPhase();
   });
 
@@ -441,13 +513,22 @@
     settingRounds.value = settings.totalRounds;
   });
 
+  socket.on('room:kicked', () => {
+    alert('You were removed from the room by the host.');
+    backToLobby();
+  });
+
   socket.on('room:state', (info) => {
     state.phase = info.phase;
     state.currentRound = info.currentRound;
     state.totalRounds = info.totalRounds;
     state.packetName = info.packetName || '';
+    state.hostId = info.hostId || state.hostId;
+    state.isHost = state.hostId === selfId;
     state.wordParts = info.round?.wordParts ? info.round.wordParts.map((n) => Number(n)) : [];
     state.wordLength = info.round?.wordLength || 0;
+    state.skipCount = info.round?.skipVotes || 0;
+    state.skipTotal = info.round?.skipTotal || state.playerCount || 0;
     infoRoomCode.textContent = info.roomCode;
     infoHost.textContent = info.hostName;
     infoDuration.textContent = info.duration;
@@ -469,6 +550,9 @@
     state.totalRounds = payload.totalRounds;
     state.wordLength = Number(payload.wordLength || 0);
     state.wordParts = (payload.wordParts || []).map((n) => Number(n));
+    state.skipCount = 0;
+    state.skipTotal = state.playerCount || 0;
+    state.hasVotedSkip = false;
     roundSolution.textContent = '';
     timerEl.textContent = payload.duration;
     roundLabel.textContent = `Round ${payload.roundNumber}/${payload.totalRounds}`;
@@ -492,17 +576,26 @@
     updateHints(visibleHints);
   });
 
+  socket.on('round:skipVote', ({ count, total }) => {
+    state.skipCount = count;
+    state.skipTotal = total;
+    updateSkipButton();
+  });
+
   socket.on('round:guessResult', (payload) => {
     updateGuesses(payload);
   });
 
   socket.on('round:ended', ({ scores, lastRoundScores, final, podium, reason, solution, phase }) => {
     state.phase = phase || (final ? 'finished' : 'round-ended');
-    timerEl.textContent = reason === 'time' ? 'Time is up!' : 'Round complete';
+    timerEl.textContent = reason === 'time' ? 'Time is up!' : reason === 'skipped' ? 'Round skipped' : 'Round complete';
     updateScoreboard(scores, lastRoundScores);
     state.wordLength = 0;
     state.wordParts = [];
-    roundSolution.textContent = solution ? solution.toUpperCase() : '';
+    state.skipCount = 0;
+    state.skipTotal = 0;
+    state.hasVotedSkip = false;
+    roundSolution.textContent = reason === 'skipped' ? 'Round skipped' : solution ? solution.toUpperCase() : '';
     leaderboardList.innerHTML = '';
     showLeaderboard(lastRoundScores, scores);
     if (!final) {
