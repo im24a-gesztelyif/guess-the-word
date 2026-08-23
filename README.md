@@ -1,18 +1,62 @@
-# Guess the Word (Realtime)
+# Guess the Word
 
-Small training project: realtime multiplayer word-guessing game built with Node.js, Express, Socket.IO, and vanilla JS.
+A real-time multiplayer browser game built with Node.js, Express, Socket.IO, and vanilla JavaScript.
 
-## Run locally
-1) Install dependencies: `npm install`  
-2) Start the server: `npm start`  
-3) Open `http://localhost:3000` in the browser. Create a room, share the 4-letter code, and start a round.
+[![CI](https://github.com/im24a-gesztelyif/guess-the-word/actions/workflows/ci.yml/badge.svg)](https://github.com/im24a-gesztelyif/guess-the-word/actions/workflows/ci.yml)
 
-## How it works
-- **Rooms and lobby:** server keeps in-memory rooms keyed by a 4-letter code. One host per room manages settings and rounds. `lobby:createRoom`, `lobby:joinRoom`, `lobby:rooms` keep the lobby list fresh.
-- **Packets and rounds:** the host chooses a packet (movies, places, countries, animals, food, jobs, sports, objects, etc.). Each round pulls an unused word + four hints from that packet (reshuffles if exhausted). Rounds continue automatically until the configured total.
-- **Scoring:** points per correct guess: 4/3/2/1 based on hint count (1–4). The first correct guess in each round gets a +1 bonus (so 5/4/3/2 for the first correct player).
-- **Realtime updates:** Socket.IO events broadcast round start (`round:started`), ticking timers + hints (`round:tick`), guesses (`round:guessResult`), and round end + scores (`round:ended`). Scores live in memory per room and reset only when the server restarts.
-- **Frontend:** pure HTML/CSS/JS in `public/`. A segmented input shows the word length and captures character-by-character guesses (Enter to submit). Scoreboard/guesses are scrollable, and host setup is packet-based with no manual word entry.
+![Guess the Word lobby](docs/screenshots/lobby.png)
 
-## Deploy
-- The server listens on `PORT` env var or 3000. Suitable for Railway/fly.io/etc. by running `npm start`.
+## Implemented features
+
+- Public and private rooms with four-character join codes
+- Host-controlled round duration, round count, and word packs
+- Progressive hints and time-based scoring
+- First-correct bonus, skip voting, and final standings
+- Synchronized room, round, timer, and scoreboard state
+- Host migration and room cleanup when players disconnect
+- Responsive frontend built without a client framework
+
+## Technology stack
+
+- Node.js and Express
+- Socket.IO
+- Vanilla JavaScript, HTML, and CSS
+
+## Architecture
+
+The Express server serves the static frontend and owns all game state in memory. Socket.IO events synchronize lobby listings, room membership, round timing, guesses, scores, and host actions. Rooms are intentionally temporary and disappear when the server restarts.
+
+## Setup
+
+```bash
+npm install
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000), create a room, and share its code with another browser window.
+
+## Configuration
+
+The server uses port `3000` by default and accepts a `PORT` environment variable. Word packs are stored with the server source and can be extended without changing the client.
+
+## Verification
+
+```bash
+npm test
+```
+
+The smoke test starts the real server on an isolated port, requests the home page, and shuts the process down.
+
+## Limitations
+
+- Room state is stored in memory rather than a database.
+- The project is designed for learning and small demonstrations, not untrusted production traffic.
+- Horizontal scaling would require shared room state and a Socket.IO adapter.
+
+## Project context
+
+This is a personal learning project focused on real-time multiplayer state, event-driven server code, and a framework-free browser interface.
+
+## Learning outcomes
+
+The project strengthened my understanding of WebSocket events, authoritative server state, disconnect handling, timers, and keeping multiple browser clients synchronized.
