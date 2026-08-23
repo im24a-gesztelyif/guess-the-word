@@ -1,2 +1,3 @@
 prompts/
 node_modules/
+*.log
