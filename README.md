@@ -47,16 +47,6 @@ npm test
 
 The smoke test starts the real server on an isolated port, requests the home page, and shuts the process down.
 
-## Limitations
-
-- Room state is stored in memory rather than a database.
-- The project is designed for learning and small demonstrations, not untrusted production traffic.
-- Horizontal scaling would require shared room state and a Socket.IO adapter.
-
 ## Project context
 
 This is a personal learning project focused on real-time multiplayer state, event-driven server code, and a framework-free browser interface.
-
-## Learning outcomes
-
-The project strengthened my understanding of WebSocket events, authoritative server state, disconnect handling, timers, and keeping multiple browser clients synchronized.
